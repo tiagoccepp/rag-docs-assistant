@@ -98,14 +98,14 @@ class MockLLM(BaseLLM):
 class OpenAILLM(BaseLLM):
     """OpenAI chat-completions generator."""
 
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini", max_tokens: int = 1024, temperature: float = 0.2) -> None:
+    def __init__(self, api_key: str, model: str = "gpt-4o-mini", max_tokens: int = 1024, temperature: float = 0.2, base_url: str = "https://api.openai.com/v1") -> None:
         try:
             from openai import OpenAI  # type: ignore
         except ImportError as exc:
             raise ImportError("openai is not installed. Run: pip install openai") from exc
         if not api_key:
             raise ValueError("OPENAI_API_KEY is empty")
-        self._client = OpenAI(api_key=api_key)
+        self._client = OpenAI(api_key=api_key, base_url=base_url)
         self.name = model
         self.model = model
         self.max_tokens = max_tokens
@@ -177,6 +177,7 @@ def get_llm(settings: Settings | None = None) -> BaseLLM:
                 model=s.openai_chat_model,
                 max_tokens=s.generation_max_tokens,
                 temperature=s.generation_temperature,
+                base_url=s.openai_base_url,
             )
         except Exception:
             pass

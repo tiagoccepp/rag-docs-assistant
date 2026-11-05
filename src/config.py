@@ -48,6 +48,7 @@ class Settings(BaseSettings):
 
     # Generation
     llm_provider: Literal["mock", "openai"] = "mock"
+    openai_base_url: str = "https://api.openai.com/v1"
     openai_chat_model: str = "gpt-4o-mini"
     generation_max_tokens: int = 1024
     generation_temperature: float = 0.2
