@@ -11,7 +11,8 @@ set `LLM_PROVIDER=openai` + key to use a real model.
 | OpenAI | `https://api.openai.com/v1` (default) | `OPENAI_API_KEY` | paid |
 | OpenRouter | `https://openrouter.ai/api/v1` | free key at openrouter.ai/keys | free `:free` models, no card |
 | Ollama (local) | `http://localhost:11434/v1` | none needed | free, private |
-| opencode Zen / other gateways | your gateway URL | your gateway key | varies |
+| opencode Zen ✅ verified | `https://opencode.ai/zen/go/v1` | your Zen key | free `beam-free` model ($0) |
+| other gateways | your gateway URL | your gateway key | varies |
 
 ## Configure
 
@@ -37,6 +38,9 @@ whether the answer kept its `[1]` citation, and never prints the key.
 CI stays keyless: tests and evals always use the mock.
 
 ## Notes
+
+- Zen requires an `x-opencode-session` header — `scripts/live_smoke.py` sends it
+  automatically (override with `OPENCODE_SESSION_ID`); other providers ignore it.
 
 - Free models vary in instruction-following; if citations drop, try a
   larger `:free` model or lower temperature (already 0.2 in prod path).

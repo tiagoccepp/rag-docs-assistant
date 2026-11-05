@@ -25,7 +25,7 @@ chunk = (Path(__file__).resolve().parent.parent / "data" / "sample_docs" / "01-h
 payload = {
     "model": MODEL,
     "temperature": 0.2,
-    "max_tokens": 200,
+    "max_tokens": 1024,  # reasoning models spend tokens thinking before answering
     "messages": [
         {"role": "system", "content": "Answer using ONLY the context. Cite facts as [1]. If unanswerable, say exactly: I do not know."},
         {"role": "user", "content": f"[1]\n{chunk}\n\nQuestion: What are the core collaboration hours?"},
@@ -34,7 +34,7 @@ payload = {
 req = urllib.request.Request(
     f"{BASE}/chat/completions",
     data=json.dumps(payload).encode(),
-    headers={"Content-Type": "application/json", "Authorization": f"Bearer {KEY}"},
+    headers={"Content-Type": "application/json", "Authorization": f"Bearer {KEY}", "User-Agent": "portfolio-live-smoke/1.0", "x-opencode-session": os.getenv("OPENCODE_SESSION_ID", "live-smoke")},  # Zen API requires the session header; ignored by OpenAI/OpenRouter
 )
 t0 = time.time()
 try:

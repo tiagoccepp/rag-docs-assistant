@@ -5,6 +5,8 @@ documentation: hybrid search (vector + full-text, fused with RRF), reranking, ci
 answer generation with abstention, and RAGAS-style offline evaluation.
 
 > Built with Claude Code / Cursor — AI-pair-programmed, human-reviewed.
+>
+> ✅ **Live-verified** against a real LLM API (opencode Zen, free `beam-free` model, 2026-11-05) — see `docs/LIVE_VERIFIED.md`.
 
 ## Problem
 
