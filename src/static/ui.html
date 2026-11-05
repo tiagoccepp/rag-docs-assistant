@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG Docs Assistant — demo</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  h1 { font-size: 1.4rem; }
+  .row { display: flex; gap: .5rem; margin: 1rem 0; }
+  input[type=text] { flex: 1; padding: .6rem; font-size: 1rem; }
+  button { padding: .6rem 1rem; font-size: 1rem; cursor: pointer; }
+  .samples button { font-size: .85rem; padding: .3rem .6rem; margin: 0 .3rem .3rem 0; }
+  #answer { white-space: pre-wrap; background: #8882; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+  .badge { display: inline-block; padding: .15rem .6rem; border-radius: 999px; font-size: .8rem; margin-right: .4rem; }
+  .ok { background: #1a7f37; color: #fff; }
+  .warn { background: #9a6700; color: #fff; }
+  .passage { border-left: 3px solid #888; padding: .3rem .8rem; margin: .5rem 0; font-size: .9rem; }
+  .meta { color: #888; font-size: .85rem; }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<h1>RAG Docs Assistant <span class="meta">— offline demo (mock LLM, 26 chunks)</span></h1>
+<div class="row">
+  <input id="q" type="text" placeholder="Ask about the company docs…" value="What are the core collaboration hours?">
+  <button onclick="ask()">Ask</button>
+</div>
+<div class="samples">
+  <button onclick="setQ('How much does the Team plan cost per user?')">pricing</button>
+  <button onclick="setQ('What is the hotel cap per night?')">travel</button>
+  <button onclick="setQ('Who is on-call and how do swaps work?')">on-call</button>
+  <button onclick="setQ('Zqxw kvetch blorpt flarnib?')">unanswerable ⛔</button>
+</div>
+<div id="status"></div>
+<div id="answer" hidden></div>
+<div id="passages"></div>
+<p class="meta"><a href="/docs">API docs</a> · POST /query · GET /stats</p>
+<script>
+function setQ(t){ document.getElementById('q').value = t; ask(); }
+async function ask(){
+  const q = document.getElementById('q').value;
+  const st = document.getElementById('status');
+  const an = document.getElementById('answer');
+  const ps = document.getElementById('passages');
+  st.textContent = 'Searching…'; an.hidden = true; ps.innerHTML = '';
+  const r = await fetch('/query', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({question: q})});
+  const j = await r.json();
+  st.innerHTML = j.abstained
+    ? '<span class="badge warn">ABSTAINED</span> no reliable context found'
+    : '<span class="badge ok">ANSWERED</span> citations: [' + j.citations.join(', ') + '] · model: ' + j.model;
+  an.textContent = j.answer; an.hidden = false;
+  ps.innerHTML = '<h3>Top passages</h3>' + j.passages.map(p =>
+    '<div class="passage"><b>' + p.section + '</b> <span class="meta">score ' + p.score.toFixed(3) + ' · ' + p.source.split('/').pop() + '</span><br>' +
+    p.text.slice(0, 220) + (p.text.length > 220 ? '…' : '') + '</div>'
+  ).join('');
+}
+</script>
+</body>
+</html>

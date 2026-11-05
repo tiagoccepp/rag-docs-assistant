@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import AsyncIterator
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
@@ -170,6 +170,12 @@ def health() -> dict:
     except Exception:
         pass
     return {"status": "ok", "chunks": size, "llm": s.llm_provider, "rerank": s.rerank_provider}
+
+
+@app.get("/ui", include_in_schema=False)
+def ui() -> FileResponse:
+    """Minimal demo UI (single static file, no build step)."""
+    return FileResponse(Path(__file__).resolve().parent / "static" / "ui.html")
 
 
 @app.get("/stats")
