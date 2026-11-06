@@ -4,7 +4,7 @@ A production-grade **Retrieval-Augmented Generation (RAG)** assistant over compa
 documentation: hybrid search (vector + full-text, fused with RRF), reranking, cited
 answer generation with abstention, and RAGAS-style offline evaluation.
 
-> Built with Claude Code / Cursor — AI-pair-programmed, human-reviewed.
+> Built by hand and with AI assistance (Claude Code): I set the architecture and eval gates, wrote the tests and docs, and reviewed every change.
 >
 > ✅ **Live-verified** against a real LLM API (opencode Zen, free `beam-free` model, 2026-11-05) — see `docs/LIVE_VERIFIED.md`.
 
