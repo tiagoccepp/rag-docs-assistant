@@ -74,6 +74,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:1.1rem;max-width
 .badge{font-family:var(--font-mono);font-size:.7rem;font-weight:600;letter-spacing:.06em;border-radius:5px;padding:.18rem .5rem}
 .badge.ok{background:var(--ok-dim);color:var(--ok);border:1px solid rgba(52,199,123,.4)}
 .badge.abs{background:var(--abstain-dim);color:var(--abstain);border:1px solid rgba(155,126,222,.45)}
+.badge.prev{background:rgba(76,195,255,.1);color:#4CC3FF;border:1px solid rgba(76,195,255,.4)}
 .verdict .meta{font-family:var(--font-mono);font-size:.72rem;color:var(--faint)}
 .answer{font-size:.94rem;max-width:70ch}
 .answer strong{font-weight:600}
@@ -231,6 +232,19 @@ function renderRail(passages,abstained){
   });
 }
 
+const STOPW=new Set('a,an,the,and,or,but,is,are,was,were,be,been,of,to,in,on,for,with,what,when,where,who,how,do,does,did,can,could,should,would,me,my,you,your,it,its,this,that,there,their,they,at,by,from,as,about,into,have,has,had,not,no,so,if,than,too,very,just,me'.split(','));
+function previewRetrieve(question){
+  const chunks=(typeof FIXTURES!=='undefined'&&FIXTURES.chunks)||[];
+  if(!chunks.length)return [];
+  const qt=question.toLowerCase().split(/[^a-z0-9]+/).filter(t=>t.length>2&&!STOPW.has(t));
+  if(!qt.length)return [];
+  const df={};
+  const toks=chunks.map(c=>{const s=new Set(c.text.toLowerCase().split(/[^a-z0-9]+/));qt.forEach(t=>{if(s.has(t))df[t]=(df[t]||0)+1;});return c.text.toLowerCase();});
+  const N=chunks.length;
+  const scored=chunks.map((c,i)=>{let s=0;qt.forEach(t=>{const tf=(toks[i].match(new RegExp('\\b'+t,'g'))||[]).length;if(tf>0)s+=(1+Math.log(tf))*(1+Math.log(N/((df[t]||1))));});return{text:c.text,source:c.source,section:c.section,_s:s};}).filter(o=>o._s>0).sort((a,b)=>b._s-a._s).slice(0,3);
+  const mx=(scored[0]&&scored[0]._s)||1;
+  return scored.map(o=>({text:o.text,source:o.source,section:o.section,score:o._s/mx}));
+}
 async function ask(question){
   question=(question||'').trim();
   if(!question||busy)return;
@@ -244,7 +258,16 @@ async function ask(question){
     let j;
     if(DEMO){
       const key=FIXMAP[question];
-      if(!key||typeof FIXTURES==='undefined'||!FIXTURES[key]){el.innerHTML='<div class="err">Sample mode includes the 4 sample questions above — pick one to see a recorded real response.</div>';$('passages').innerHTML='<div class="empty">Nothing retrieved.</div>';setBusy(false);return;}
+      if(!key||typeof FIXTURES==='undefined'||!FIXTURES[key]){
+        const prev=previewRetrieve(question);
+        if(!prev.length){el.innerHTML='<div class="err">No matching content for those words — try terms like pricing, vacation, hotel, on-call, or pick a sample above for a recorded full answer.</div>';$('passages').innerHTML='<div class="empty">Nothing retrieved.</div>';setBusy(false);return;}
+        await sleep(500);
+        const ms=Math.round(performance.now()-t0);
+        el.innerHTML='<div class="verdict"><span class="badge prev">RETRIEVAL PREVIEW</span><span class="meta">live in-browser search · '+ms+'ms</span></div><div class="answer">These are the top passages your words match in the knowledge base — the same evidence a live backend would send to the LLM for a cited answer. The 4 samples above show recorded full answers.</div>';
+        renderRail(prev,false);
+        $('railstats').innerHTML=prev.length+' passages · '+ms+'ms<br>preview mode · generation needs a live backend';
+        setBusy(false);el.scrollIntoView({block:'nearest'});return;
+      }
       await sleep(650);
       j=FIXTURES[key];
     }else{

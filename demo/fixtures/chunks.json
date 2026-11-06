@@ -1,0 +1,158 @@
+[
+ {
+  "text": "# Northwind Labs \u2014 Employee Handbook\n\nWelcome to Northwind Labs! This handbook summarizes how we work. Last updated March 2026.",
+  "source": "01-handbook.md",
+  "section": "Northwind Labs \u2014 Employee Handbook",
+  "position": 0
+ },
+ {
+  "text": "# Working Hours\n\nOur core collaboration hours are **10:00 to 15:00 America/Montevideo**, Monday to Friday. Outside core hours you may arrange a flexible schedule with your manager. The standard work week is 40 hours. Overtime is paid at 1.5x for hours above 40 in a week.",
+  "source": "01-handbook.md",
+  "section": "Working Hours",
+  "position": 1
+ },
+ {
+  "text": "# Remote Work\n\nNorthwind is a **remote-first** company. You may work from anywhere with at least 4 hours of overlap with core hours. We provide a **USD 150 monthly stipend** for coworking or home office expenses. Reimbursements are processed on the 5th of each month via Deel.",
+  "source": "01-handbook.md",
+  "section": "Remote Work",
+  "position": 2
+ },
+ {
+  "text": "# Time Off\n\n- Full-time employees receive **20 vacation days per year**, accrued monthly. - Sick leave is **unlimited** but requires notice to your manager before 10:00 on the day. - Parental leave is **12 weeks fully paid** for any new parent. - Uruguay public holidays are observed; staff in other countries observe their local holidays.",
+  "source": "01-handbook.md",
+  "section": "Time Off",
+  "position": 3
+ },
+ {
+  "text": "# Onboarding\n\nYour first week includes: a buddy assignment, security training, and a 30-minute welcome call with the CEO. Laptops (MacBook Pro 14) ship before day one. Access provisioning is handled through Okta and typically completes within 24 hours of contract signature.",
+  "source": "01-handbook.md",
+  "section": "Onboarding",
+  "position": 4
+ },
+ {
+  "text": "# Performance Reviews\n\nReviews happen **twice a year** (April and October). Ratings are: Exceeds, Meets, Partially Meets, Does Not Meet. Promotions require two consecutive Exceeds ratings and a written growth plan approved by your manager and skip-level.",
+  "source": "01-handbook.md",
+  "section": "Performance Reviews",
+  "position": 5
+ },
+ {
+  "text": "# Code of Conduct\n\nWe have zero tolerance for harassment or discrimination. Report concerns to people@northwindlabs.example or through the anonymous form. All reports are acknowledged within 48 hours and investigated confidentially.",
+  "source": "01-handbook.md",
+  "section": "Code of Conduct",
+  "position": 6
+ },
+ {
+  "text": "# Northwind Labs \u2014 Product FAQ\n\nAnswers to common questions about the Northwind platform. Version 2.4, February 2026.",
+  "source": "02-faq.md",
+  "section": "Northwind Labs \u2014 Product FAQ",
+  "position": 0
+ },
+ {
+  "text": "# What is Northwind?\n\nNorthwind is a **project analytics platform** for software teams. It connects to GitHub, GitLab, Jira, and Slack, then computes delivery metrics such as cycle time, throughput, and review latency. Dashboards update every 15 minutes.",
+  "source": "02-faq.md",
+  "section": "What is Northwind?",
+  "position": 1
+ },
+ {
+  "text": "# Pricing\n\n- **Starter**: USD 0, up to 5 users, 30-day data retention. - **Team**: USD 12 per user per month, unlimited retention, SSO included. - **Enterprise**: custom pricing, dedicated VPC, audit logs, 99.99% SLA. Annual billing saves 20% on Team plans. Nonprofits get 50% off.",
+  "source": "02-faq.md",
+  "section": "Pricing",
+  "position": 2
+ },
+ {
+  "text": "# Security\n\nWe are **SOC 2 Type II certified** and encrypt data with AES-256 at rest and TLS 1.3 in transit. Backups run every 6 hours with 30-day retention. We never train ML models on customer data. Penetration tests are performed quarterly by an external firm.",
+  "source": "02-faq.md",
+  "section": "Security",
+  "position": 3
+ },
+ {
+  "text": "# Integrations\n\nNative integrations: GitHub, GitLab, Bitbucket, Jira, Linear, Slack, PagerDuty. A REST API and webhooks are available on Team and Enterprise plans. API rate limit is 1000 requests per minute per workspace. Contact support for higher limits.",
+  "source": "02-faq.md",
+  "section": "Integrations",
+  "position": 4
+ },
+ {
+  "text": "# Support\n\n- Starter: community forum, 72-hour response target. - Team: email support, 8-hour response target on business days. - Enterprise: dedicated Slack channel, 1-hour response target, 24/7 on-call. Status page: status.northwindlabs.example. Scheduled maintenance windows are Sundays 02:00\u201304:00 UTC.",
+  "source": "02-faq.md",
+  "section": "Support",
+  "position": 5
+ },
+ {
+  "text": "# Data Export\n\nYou can export all workspace data at any time as JSON or CSV from Settings \u2192 Export. Exports complete within 24 hours for workspaces under 100 GB. Deleting a workspace permanently erases data after a 30-day grace period.",
+  "source": "02-faq.md",
+  "section": "Data Export",
+  "position": 6
+ },
+ {
+  "text": "# Northwind Labs \u2014 Expense & Travel Policy\n\nEffective January 2026. Applies to all employees and contractors.",
+  "source": "03-expense-policy.md",
+  "section": "Northwind Labs \u2014 Expense & Travel Policy",
+  "position": 0
+ },
+ {
+  "text": "# Expense Limits\n\nNo approval needed under **USD 50**. Manager approval required from USD 50 to USD 500. Finance approval required above **USD 500**. All expenses must be submitted in Ramp within 30 days with an itemized receipt.",
+  "source": "03-expense-policy.md",
+  "section": "Expense Limits",
+  "position": 1
+ },
+ {
+  "text": "# Travel\n\n- Flights under 6 hours: economy class. Flights 6+ hours: premium economy allowed. - Hotel cap is **USD 180 per night** (USD 250 in San Francisco, London, and Tokyo). - Daily meal allowance is **USD 60**; alcohol is not reimbursable. - Book travel at least 14 days in advance unless approved as urgent.",
+  "source": "03-expense-policy.md",
+  "section": "Travel",
+  "position": 2
+ },
+ {
+  "text": "# Equipment\n\nNew hires receive a MacBook Pro 14, monitor up to USD 400, and accessories up to USD 200. Replacements are covered after 3 years or on documented failure. Lost or stolen equipment must be reported to IT within 24 hours.",
+  "source": "03-expense-policy.md",
+  "section": "Equipment",
+  "position": 3
+ },
+ {
+  "text": "# Software\n\nApproved tools (Notion, Figma, GitHub, Linear) are expensed centrally \u2014 do not buy seats yourself. New tool requests above USD 20/month need manager approval via the #procurement Slack channel. Annual contracts above USD 5,000 need Finance sign-off.",
+  "source": "03-expense-policy.md",
+  "section": "Software",
+  "position": 4
+ },
+ {
+  "text": "# Consultants\n\nContractor day rates above USD 800 require VP approval. All consulting agreements must use the standard MSA template and be countersigned before work begins.",
+  "source": "03-expense-policy.md",
+  "section": "Consultants",
+  "position": 5
+ },
+ {
+  "text": "# Northwind Labs \u2014 Engineering On-Call Guide\n\nHow on-call works for the engineering team. Owner: SRE team, updated April 2026.",
+  "source": "04-oncall-guide.md",
+  "section": "Northwind Labs \u2014 Engineering On-Call Guide",
+  "position": 0
+ },
+ {
+  "text": "# Rotation\n\nOn-call rotates **weekly, Monday 09:00 UTC to Monday 09:00 UTC**. The schedule lives in PagerDuty. Swaps are allowed with 48-hour notice and teammate confirmation. No one is on-call two weeks in a row except by voluntary opt-in.",
+  "source": "04-oncall-guide.md",
+  "section": "Rotation",
+  "position": 1
+ },
+ {
+  "text": "# Severity Levels\n\n- **SEV1**: full outage or data loss risk. All hands, page immediately, war room in Slack #incident. - **SEV2**: major feature degraded for >10% of users. Page on-call, acknowledge within 15 minutes. - **SEV3**: minor bug or single-customer impact. Ticket, fix within 5 business days. - **SEV4**: cosmetic or docs issue. Backlog, no SLA.",
+  "source": "04-oncall-guide.md",
+  "section": "Severity Levels",
+  "position": 2
+ },
+ {
+  "text": "# Incident Process\n\n1. Acknowledge the page within 15 minutes for SEV1/SEV2. 2. Create an incident channel and assign Commander, Scribe, and Comms roles. 3. Mitigate first, root-cause later. Time to mitigation target: 1 hour for SEV1. 4. Postmortem due within 5 business days, blameless, reviewed by the CTO.",
+  "source": "04-oncall-guide.md",
+  "section": "Incident Process",
+  "position": 3
+ },
+ {
+  "text": "# Compensation\n\nOn-call earns **USD 300 per week** plus USD 100 per SEV1/SEV2 incident handled. Pages between 22:00 and 07:00 local time grant a half-day off in lieu, no questions asked.",
+  "source": "04-oncall-guide.md",
+  "section": "Compensation",
+  "position": 4
+ },
+ {
+  "text": "# Runbooks\n\nRunbooks live in the `runbooks/` repo. Every alert must link a runbook; alerts without runbooks are auto-assigned to the owning team as tech-debt tickets each quarter.",
+  "source": "04-oncall-guide.md",
+  "section": "Runbooks",
+  "position": 5
+ }
+]
