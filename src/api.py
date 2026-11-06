@@ -101,8 +101,8 @@ def _on_startup() -> None:
 # ---------------------------------------------------------------------------
 
 class IngestRequest(BaseModel):
-    markdown: str = Field(description="Markdown document content")
-    source: str = Field(default="api-upload", description="Source label for citations")
+    markdown: str = Field(max_length=200000, description="Markdown document content")
+    source: str = Field(default="api-upload", max_length=200, description="Source label for citations")
 
 
 class IngestResponse(BaseModel):
@@ -111,7 +111,7 @@ class IngestResponse(BaseModel):
 
 
 class QueryRequest(BaseModel):
-    question: str = Field(min_length=3, description="User question")
+    question: str = Field(min_length=3, max_length=2000, description="User question")
     top_k: int = Field(default=5, ge=1, le=20, description="Final passages returned")
 
 
@@ -189,6 +189,8 @@ def stats() -> dict:
 
 @app.post("/ingest", response_model=IngestResponse)
 def ingest(req: IngestRequest) -> IngestResponse:
+    if os.getenv("DISABLE_INGEST") == "1":
+        raise HTTPException(status_code=403, detail="ingest disabled on public demos")
     s = get_settings()
     chunks = chunk_document(req.markdown, source=req.source, chunk_size=s.chunk_size_tokens, overlap=s.chunk_overlap_tokens)
     if not chunks:

@@ -71,6 +71,17 @@ def test_ingest_rejects_empty(client):
     assert resp.status_code == 400
 
 
+def test_ingest_disabled_on_public_demos(client, monkeypatch):
+    monkeypatch.setenv("DISABLE_INGEST", "1")
+    resp = client.post("/ingest", json={"markdown": "## X\n\nY", "source": "evil.md"})
+    assert resp.status_code == 403
+
+
+def test_question_max_length(client):
+    resp = client.post("/query", json={"question": "x" * 2001})
+    assert resp.status_code == 422
+
+
 def test_query_stream_emits_events(client):
     resp = client.post("/query/stream", json={"question": "Team plan cost?", "top_k": 2})
     assert resp.status_code == 200

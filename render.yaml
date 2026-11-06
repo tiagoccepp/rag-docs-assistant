@@ -18,3 +18,5 @@ services:
         value: beam-free
       - key: OPENCODE_SESSION_ID
         value: render-prod
+      - key: DISABLE_INGEST
+        value: "1"
