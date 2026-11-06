@@ -8,6 +8,12 @@ answer generation with abstention, and RAGAS-style offline evaluation.
 >
 > ✅ **Live-verified** against a real LLM API (opencode Zen, free `beam-free` model, 2026-11-05) — see `docs/LIVE_VERIFIED.md`.
 
+## Demo
+
+![RAG Docs Assistant demo UI](docs/img/ui.png)
+
+*Cited answer with the `[1]` source marker plus ranked passages — `./demo.sh`, then open `http://127.0.0.1:8000/ui`.*
+
 ## Problem
 
 Support teams and employees waste hours digging through handbooks, FAQs, and policy
