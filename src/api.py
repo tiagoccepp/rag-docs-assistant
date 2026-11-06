@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import AsyncIterator
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
@@ -43,6 +44,14 @@ app = FastAPI(
     version="0.1.0",
 )
 app.add_middleware(RateLimitMiddleware, prefixes=("/query", "/answer", "/ingest"))
+# Public demo API: allow browser fetches from the portfolio dashboard.
+# Rate-limited, no credentials — safe to be open.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 _settings = get_settings()
 _retriever: InMemoryRetriever | PostgresRetriever | None = None

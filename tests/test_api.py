@@ -108,3 +108,9 @@ def test_query_stream_emits_events(client):
     text = resp.text
     assert "passages" in text
     assert "done" in text
+
+
+def test_cors_allows_browser_origin(client):
+    r = client.get("/health", headers={"Origin": "https://tiagoccepp.github.io"})
+    assert r.status_code == 200
+    assert r.headers.get("access-control-allow-origin") == "*"
