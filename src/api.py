@@ -29,6 +29,7 @@ from src.config import Settings, get_settings
 from src.embeddings import get_embedding_provider
 from src.generate import generate_answer, generate_answer_stream
 from src.ingest import chunk_document, ingest_directory
+from src.ratelimit import RateLimitMiddleware
 from src.rerank import rerank
 from src.retrieval import InMemoryRetriever, PostgresRetriever, RetrievalResult
 
@@ -41,6 +42,7 @@ app = FastAPI(
     description="Hybrid-search RAG over company docs: pgvector + FTS + RRF, rerank, cited answers.",
     version="0.1.0",
 )
+app.add_middleware(RateLimitMiddleware, prefixes=("/query", "/ingest"))
 
 _settings = get_settings()
 _retriever: InMemoryRetriever | PostgresRetriever | None = None
