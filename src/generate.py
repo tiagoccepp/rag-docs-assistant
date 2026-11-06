@@ -96,10 +96,56 @@ class MockLLM(BaseLLM):
         return "Based on the documentation:\n" + "\n".join(lines)
 
 
-class OpenAILLM(BaseLLM):
-    """OpenAI chat-completions generator."""
+# Free-model rotation pool. Every entry returned cost=0 on the 2026-11-06 probe
+# with the demo key. Distinct vendors: a vendor-level removal still leaves
+# answers working. Override with LLM_FALLBACK_MODELS="m1,m2" (primary first).
+FREE_POOL = [
+    "beam-free", "iceman-contributor-free", "crouton-alpha-free",
+    "deepseek-v4.1-flash", "qwen3.8-flash", "minimax-m3.1-flash", "glm-5.3-flash",
+]
 
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini", max_tokens: int = 1024, temperature: float = 0.2, base_url: str = "https://api.openai.com/v1") -> None:
+
+def rotation_list(primary: str, fallback_csv: str = "") -> list[str]:
+    """Primary first, then explicit fallbacks (or FREE_POOL), deduped."""
+    rest = [m.strip() for m in fallback_csv.split(",") if m.strip()] or [
+        m for m in FREE_POOL if m != primary
+    ]
+    seen = {primary}
+    out = [primary]
+    for m in rest:
+        if m not in seen:
+            seen.add(m)
+            out.append(m)
+    return out
+
+
+def _retryable(exc: BaseException) -> bool:
+    """Retry removed/rate-limited/crashed models; never retry auth/bad-request."""
+    status = getattr(exc, "status_code", None)
+    if status is None:
+        resp = getattr(exc, "response", None)
+        status = getattr(resp, "status_code", None)
+    if status is not None:
+        try:
+            code = int(status)
+        except (TypeError, ValueError):
+            return False
+        if code == 400:
+            # Zen reports removed models as 400 "Model is unavailable" —
+            # rotate only on model-availability signals, not param errors.
+            msg = str(getattr(exc, "message", "") or exc).lower()
+            gone = ("unavailable", "not found", "notfound", "unknown model",
+                    "no such model", "deprecated", "removed", "does not exist")
+            return "model" in msg and any(s in msg for s in gone)
+        return code in (404, 408, 409, 429) or code >= 500
+    name = type(exc).__name__.lower()
+    return "connect" in name or "timeout" in name or "transport" in name
+
+
+class OpenAILLM(BaseLLM):
+    """OpenAI chat-completions generator with free-model rotation."""
+
+    def __init__(self, api_key: str, model: str = "gpt-4o-mini", max_tokens: int = 1024, temperature: float = 0.2, base_url: str = "https://api.openai.com/v1", models: list[str] | None = None) -> None:
         try:
             from openai import OpenAI  # type: ignore
         except ImportError as exc:
@@ -117,34 +163,60 @@ class OpenAILLM(BaseLLM):
         )
         self.name = model
         self.model = model
+        self.models = models or [model]
         self.max_tokens = max_tokens
         self.temperature = temperature
 
     def complete(self, system: str, user: str) -> str:
-        resp = self._client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            max_tokens=self.max_tokens,
-            temperature=self.temperature,
-        )
-        return (resp.choices[0].message.content or "").strip()
+        last: BaseException | None = None
+        for m in self.models:
+            try:
+                resp = self._client.chat.completions.create(
+                    model=m,
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    max_tokens=self.max_tokens,
+                    temperature=self.temperature,
+                )
+            except Exception as exc:
+                if not _retryable(exc):
+                    raise
+                last = exc
+                continue
+            self.name = m
+            return (resp.choices[0].message.content or "").strip()
+        assert last is not None
+        raise last
 
     def stream(self, system: str, user: str) -> Iterator[str]:
-        with self._client.chat.completions.stream(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            max_tokens=self.max_tokens,
-            temperature=self.temperature,
-        ) as s:
-            for event in s:
-                if event.type == "content.delta" and event.delta:
-                    yield event.delta
+        last: BaseException | None = None
+        for m in self.models:
+            emitted = False
+            try:
+                with self._client.chat.completions.stream(
+                    model=m,
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    max_tokens=self.max_tokens,
+                    temperature=self.temperature,
+                ) as s:
+                    for event in s:
+                        if event.type == "content.delta" and event.delta:
+                            emitted = True
+                            yield event.delta
+            except Exception as exc:
+                if emitted or not _retryable(exc):
+                    raise
+                last = exc
+                continue
+            self.name = m
+            return
+        assert last is not None
+        raise last
 
 
 def build_user_prompt(query: str, contexts: list[RetrievalResult]) -> str:
@@ -187,6 +259,7 @@ def get_llm(settings: Settings | None = None) -> BaseLLM:
                 max_tokens=s.generation_max_tokens,
                 temperature=s.generation_temperature,
                 base_url=s.openai_base_url,
+                models=rotation_list(s.openai_chat_model, s.llm_fallback_models),
             )
         except Exception:
             pass
