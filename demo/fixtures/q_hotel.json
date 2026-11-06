@@ -1,0 +1,45 @@
+{
+ "answer": "- The hotel cap is **USD 180 per night**, or **USD 250 per night** in San Francisco, London, and Tokyo [1].",
+ "citations": [
+  1
+ ],
+ "abstained": false,
+ "model": "beam-free",
+ "passages": [
+  {
+   "chunk_id": "chunk-16",
+   "text": "# Travel\n\n- Flights under 6 hours: economy class. Flights 6+ hours: premium economy allowed. - Hotel cap is **USD 180 per night** (USD 250 in San Francisco, London, and Tokyo). - Daily meal allowance is **USD 60**; alcohol is not reimbursable. - Book travel at least 14 days in advance unless approved as urgent.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/03-expense-policy.md",
+   "section": "Travel",
+   "score": 0.8071
+  },
+  {
+   "chunk_id": "chunk-3",
+   "text": "# Time Off\n\n- Full-time employees receive **20 vacation days per year**, accrued monthly. - Sick leave is **unlimited** but requires notice to your manager before 10:00 on the day. - Parental leave is **12 weeks fully paid** for any new parent. - Uruguay public holidays are observed; staff in other countries observe their local holidays.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/01-handbook.md",
+   "section": "Time Off",
+   "score": 0.6164
+  },
+  {
+   "chunk_id": "chunk-8",
+   "text": "# What is Northwind?\n\nNorthwind is a **project analytics platform** for software teams. It connects to GitHub, GitLab, Jira, and Slack, then computes delivery metrics such as cycle time, throughput, and review latency. Dashboards update every 15 minutes.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/02-faq.md",
+   "section": "What is Northwind?",
+   "score": 0.5307
+  },
+  {
+   "chunk_id": "chunk-11",
+   "text": "# Integrations\n\nNative integrations: GitHub, GitLab, Bitbucket, Jira, Linear, Slack, PagerDuty. A REST API and webhooks are available on Team and Enterprise plans. API rate limit is 1000 requests per minute per workspace. Contact support for higher limits.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/02-faq.md",
+   "section": "Integrations",
+   "score": 0.5238
+  },
+  {
+   "chunk_id": "chunk-1",
+   "text": "# Working Hours\n\nOur core collaboration hours are **10:00 to 15:00 America/Montevideo**, Monday to Friday. Outside core hours you may arrange a flexible schedule with your manager. The standard work week is 40 hours. Overtime is paid at 1.5x for hours above 40 in a week.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/01-handbook.md",
+   "section": "Working Hours",
+   "score": 0.5083
+  }
+ ]
+}

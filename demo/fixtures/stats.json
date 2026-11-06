@@ -1,0 +1,4 @@
+{
+ "backend": "InMemoryRetriever",
+ "chunks": 26
+}

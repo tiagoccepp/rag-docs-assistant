@@ -155,12 +155,18 @@ header,.panel,.samples{animation:rise .35s ease-out backwards}
 </main>
 <footer>POST /query · GET /stats · single static file, no build step, runs offline</footer>
 <script>
+/*__FIXTURES__*/
 const $=id=>document.getElementById(id);
+const DEMO=/[?&]demo=1(&|$)/.test(location.search);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const FIXMAP={"How much does the Team plan cost per user?":"q_pricing","What is the hotel cap per night?":"q_hotel","Who is on-call and how do swaps work?":"q_oncall","Zqxw kvetch blorpt flarnib?":"q_absurd"};
+if(DEMO){const c=document.querySelector('.chip.live');if(c)c.innerHTML='◉ sample responses';
+const b=document.createElement('div');b.style.cssText='background:rgba(229,161,61,.1);border-bottom:1px solid rgba(229,161,61,.4);color:#E5A13D;font-family:var(--font-mono);font-size:.75rem;text-align:center;padding:.4rem .8rem';b.textContent='Sample mode — pre-recorded real responses (beam-free). Open without ?demo=1 against a live backend.';document.body.prepend(b);}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let busy=false;
 
-fetch('/stats').then(r=>r.json()).then(s=>{$('chunkChip').textContent=(s.chunks??'?')+' chunks';}).catch(()=>{$('chunkChip').textContent='offline KB';});
+if(DEMO&&typeof FIXTURES!=='undefined'&&FIXTURES.stats){$('chunkChip').textContent=(FIXTURES.stats.chunks??'?')+' chunks';}else{fetch('/stats').then(r=>r.json()).then(s=>{$('chunkChip').textContent=(s.chunks??'?')+' chunks';}).catch(()=>{$('chunkChip').textContent='offline KB';});}
 
 document.querySelectorAll('.sample').forEach(b=>b.onclick=()=>ask(b.dataset.q));
 $('askBtn').onclick=()=>ask($('q').value);
@@ -235,19 +241,28 @@ async function ask(question){
   $('railstats').textContent='';
   const t0=performance.now();
   try{
-    const r=await fetch('/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question})});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const j=await r.json();
+    let j;
+    if(DEMO){
+      const key=FIXMAP[question];
+      if(!key||typeof FIXTURES==='undefined'||!FIXTURES[key]){el.innerHTML='<div class="err">Sample mode includes the 4 sample questions above — pick one to see a recorded real response.</div>';$('passages').innerHTML='<div class="empty">Nothing retrieved.</div>';setBusy(false);return;}
+      await sleep(650);
+      j=FIXTURES[key];
+    }else{
+      const r=await fetch('/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question})});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      j=await r.json();
+    }
     const ms=Math.round(performance.now()-t0);
     el.innerHTML=(j.abstained
       ?'<div class="verdict"><span class="badge abs">ABSTAINED</span><span class="meta">no reliable context — refused to guess</span></div>'
-      :'<div class="verdict"><span class="badge ok">ANSWERED</span><span class="meta">model '+esc(j.model)+' · '+ms+'ms</span></div>')+
+      :'<div class="verdict"><span class="badge ok">ANSWERED</span><span class="meta">model '+esc(j.model)+' · '+ms+'ms'+(DEMO?' · sample':'')+'</span></div>')+
       '<div class="answer"></div>';
     renderRail(j.passages||[],j.abstained);
-    $('railstats').innerHTML='model '+esc(j.model)+'<br>'+(j.passages||[]).length+' passages · '+ms+'ms round-trip'+(j.abstained?'<br>retrieved but insufficient → abstained':'');
+    $('railstats').innerHTML='model '+esc(j.model)+'<br>'+(j.passages||[]).length+' passages · '+ms+'ms round-trip'+(j.abstained?'<br>retrieved but insufficient → abstained':'')+(DEMO?'<br>sample mode · recorded response':'');
     reveal(el,j.answer,j.citations,()=>{setBusy(false);el.scrollIntoView({block:'nearest'});});
   }catch(e){
-    el.innerHTML='<div class="err">Request failed ('+esc(e.message)+'). Is the API running?<button onclick="ask(document.getElementById(\'q\').value)">retry</button></div>';
+    const staticHost=!DEMO&&!/^(localhost|127\.0\.0\.1)/.test(location.hostname);
+    el.innerHTML='<div class="err">Request failed ('+esc(e.message)+'). '+(staticHost?'No backend here — <a href="?demo=1">open sample mode</a>.':'Is the API running?')+'<button onclick="ask(document.getElementById(\'q\').value)">retry</button></div>';
     $('passages').innerHTML='<div class="empty">Nothing retrieved.</div>';
     setBusy(false);
   }

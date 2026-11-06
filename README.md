@@ -10,9 +10,13 @@ answer generation with abstention, and RAGAS-style offline evaluation.
 
 ## Demo
 
+**Try it now (no install):** [instant demo](https://tiagoccepp.github.io/rag-docs-assistant/?demo=1) — pre-recorded real responses, loads in seconds.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tiagoccepp/rag-docs-assistant)
+
 ![RAG Docs Assistant demo UI](docs/img/ui.png)
 
-*Cited answer with the `[1]` source marker plus ranked passages — `./demo.sh`, then open `http://127.0.0.1:8000/ui`.*
+*Cited answer with the `[1]` source marker plus ranked passages — `./demo.sh`, then open `http://127.0.0.1:8000/ui`. The instant demo above replays the same UI with recorded live responses (`?demo=1` sample mode).*
 
 ## Problem
 

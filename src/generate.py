@@ -106,7 +106,15 @@ class OpenAILLM(BaseLLM):
             raise ImportError("openai is not installed. Run: pip install openai") from exc
         if not api_key:
             raise ValueError("OPENAI_API_KEY is empty")
-        self._client = OpenAI(api_key=api_key, base_url=base_url)
+        # Zen gateway compat: custom UA + session header (ignored by OpenAI/OpenRouter).
+        self._client = OpenAI(
+            api_key=api_key,
+            base_url=base_url,
+            default_headers={
+                "User-Agent": "portfolio-live-smoke/1.0",
+                "x-opencode-session": os.getenv("OPENCODE_SESSION_ID", "portfolio-api"),
+            },
+        )
         self.name = model
         self.model = model
         self.max_tokens = max_tokens

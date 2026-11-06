@@ -1,0 +1,6 @@
+{
+ "status": "ok",
+ "chunks": 26,
+ "llm": "openai",
+ "rerank": "local"
+}

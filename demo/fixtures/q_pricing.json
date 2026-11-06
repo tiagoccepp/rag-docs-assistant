@@ -1,0 +1,45 @@
+{
+ "answer": "- The Team plan costs **USD 12 per user per month** [2].",
+ "citations": [
+  2
+ ],
+ "abstained": false,
+ "model": "beam-free",
+ "passages": [
+  {
+   "chunk_id": "chunk-20",
+   "text": "# Northwind Labs \u2014 Engineering On-Call Guide\n\nHow on-call works for the engineering team. Owner: SRE team, updated April 2026.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/04-oncall-guide.md",
+   "section": "Northwind Labs \u2014 Engineering On-Call Guide",
+   "score": 0.5728
+  },
+  {
+   "chunk_id": "chunk-9",
+   "text": "# Pricing\n\n- **Starter**: USD 0, up to 5 users, 30-day data retention. - **Team**: USD 12 per user per month, unlimited retention, SSO included. - **Enterprise**: custom pricing, dedicated VPC, audit logs, 99.99% SLA. Annual billing saves 20% on Team plans. Nonprofits get 50% off.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/02-faq.md",
+   "section": "Pricing",
+   "score": 0.5723
+  },
+  {
+   "chunk_id": "chunk-25",
+   "text": "# Runbooks\n\nRunbooks live in the `runbooks/` repo. Every alert must link a runbook; alerts without runbooks are auto-assigned to the owning team as tech-debt tickets each quarter.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/04-oncall-guide.md",
+   "section": "Runbooks",
+   "score": 0.4861
+  },
+  {
+   "chunk_id": "chunk-11",
+   "text": "# Integrations\n\nNative integrations: GitHub, GitLab, Bitbucket, Jira, Linear, Slack, PagerDuty. A REST API and webhooks are available on Team and Enterprise plans. API rate limit is 1000 requests per minute per workspace. Contact support for higher limits.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/02-faq.md",
+   "section": "Integrations",
+   "score": 0.4846
+  },
+  {
+   "chunk_id": "chunk-5",
+   "text": "# Performance Reviews\n\nReviews happen **twice a year** (April and October). Ratings are: Exceeds, Meets, Partially Meets, Does Not Meet. Promotions require two consecutive Exceeds ratings and a written growth plan approved by your manager and skip-level.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/01-handbook.md",
+   "section": "Performance Reviews",
+   "score": 0.46
+  }
+ ]
+}

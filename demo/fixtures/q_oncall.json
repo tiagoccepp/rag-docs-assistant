@@ -1,0 +1,45 @@
+{
+ "answer": "- On-call rotates **weekly, Monday 09:00 UTC to Monday 09:00 UTC**, and the schedule lives in **PagerDuty** [1].\n- Swaps are allowed with **48-hour notice** and **teammate confirmation** [1].\n- No one is on-call two weeks in a row except by voluntary opt-in [1].",
+ "citations": [
+  1
+ ],
+ "abstained": false,
+ "model": "beam-free",
+ "passages": [
+  {
+   "chunk_id": "chunk-21",
+   "text": "# Rotation\n\nOn-call rotates **weekly, Monday 09:00 UTC to Monday 09:00 UTC**. The schedule lives in PagerDuty. Swaps are allowed with 48-hour notice and teammate confirmation. No one is on-call two weeks in a row except by voluntary opt-in.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/04-oncall-guide.md",
+   "section": "Rotation",
+   "score": 0.7129
+  },
+  {
+   "chunk_id": "chunk-20",
+   "text": "# Northwind Labs \u2014 Engineering On-Call Guide\n\nHow on-call works for the engineering team. Owner: SRE team, updated April 2026.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/04-oncall-guide.md",
+   "section": "Northwind Labs \u2014 Engineering On-Call Guide",
+   "score": 0.5778
+  },
+  {
+   "chunk_id": "chunk-4",
+   "text": "# Onboarding\n\nYour first week includes: a buddy assignment, security training, and a 30-minute welcome call with the CEO. Laptops (MacBook Pro 14) ship before day one. Access provisioning is handled through Okta and typically completes within 24 hours of contract signature.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/01-handbook.md",
+   "section": "Onboarding",
+   "score": 0.5588
+  },
+  {
+   "chunk_id": "chunk-11",
+   "text": "# Integrations\n\nNative integrations: GitHub, GitLab, Bitbucket, Jira, Linear, Slack, PagerDuty. A REST API and webhooks are available on Team and Enterprise plans. API rate limit is 1000 requests per minute per workspace. Contact support for higher limits.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/02-faq.md",
+   "section": "Integrations",
+   "score": 0.5581
+  },
+  {
+   "chunk_id": "chunk-2",
+   "text": "# Remote Work\n\nNorthwind is a **remote-first** company. You may work from anywhere with at least 4 hours of overlap with core hours. We provide a **USD 150 monthly stipend** for coworking or home office expenses. Reimbursements are processed on the 5th of each month via Deel.",
+   "source": "/home/tito/projects/rag-docs-assistant/data/sample_docs/01-handbook.md",
+   "section": "Remote Work",
+   "score": 0.5575
+  }
+ ]
+}
