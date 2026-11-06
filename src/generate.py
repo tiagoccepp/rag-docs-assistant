@@ -13,6 +13,7 @@ a fixed abstention message instead of hallucinating.
 
 from __future__ import annotations
 
+import os
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -142,7 +143,7 @@ def build_user_prompt(query: str, contexts: list[RetrievalResult]) -> str:
     """Render numbered context passages + question for the LLM."""
     parts = ["Context passages:"]
     for i, ctx in enumerate(contexts, start=1):
-        parts.append(f"[{i}] (source: {ctx.source} | section: {ctx.section})\n{ctx.text}")
+        parts.append(f"[{i}] (source: {os.path.basename(ctx.source)} | section: {ctx.section})\n{ctx.text}")
     parts.append(f"\nQuestion: {query}")
     return "\n\n".join(parts)
 

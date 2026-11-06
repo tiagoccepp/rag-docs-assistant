@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B0F14">
+<meta name="description" content="RAG Docs Assistant — ask company docs, get cited answers or an honest abstention.">
+<meta property="og:title" content="RAG Docs Assistant">
+<meta property="og:description" content="Hybrid-search RAG with cited answers and abstention. Live demo.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B0F14'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23E5A13D' font-family='Georgia'%3E%E2%97%88%3C/text%3E%3C/svg%3E">
+<title>RAG Docs Assistant — live demo</title>
+<style>
+/*__FONT_FACE__*/
+:root{
+  --bg:#0B0F14; --panel:#10161D; --raised:#151D26;
+  --line:rgba(232,237,242,.09); --line-strong:rgba(232,237,242,.16);
+  --text:#E8EDF2; --muted:#93A1B0; --faint:#5D6B7A;
+  --accent:#E5A13D; --accent-dim:rgba(229,161,61,.13);
+  --ok:#34C77B; --ok-dim:rgba(52,199,123,.12);
+  --abstain:#9B7EDE; --abstain-dim:rgba(155,126,222,.13);
+  --danger:#E5484D;
+  --font-display:'Sora',system-ui,sans-serif;
+  --font-body:'PublicSans',system-ui,sans-serif;
+  --font-mono:'JetBrainsMono',ui-monospace,SFMono-Regular,monospace;
+  --r-panel:12px; --r-card:10px; --r-input:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.55;min-height:100vh}
+::selection{background:rgba(229,161,61,.35)}
+a{color:var(--accent)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:.8rem;padding:.9rem 1.4rem;border-bottom:1px solid var(--line);background:rgba(11,15,20,.92);position:sticky;top:0;z-index:20;backdrop-filter:blur(8px)}
+.mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(145deg,#1b2530,#10161d);border:1px solid var(--line-strong);display:grid;place-items:center;color:var(--accent);font-size:18px;flex:none}
+header h1{font-family:var(--font-display);font-size:1.02rem;font-weight:800;letter-spacing:.01em;white-space:nowrap}
+header h1 span{color:var(--faint);font-weight:700}
+.chips{margin-left:auto;display:flex;gap:.45rem;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.chip{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:.2rem .65rem;white-space:nowrap}
+.chip.live{color:var(--ok);border-color:rgba(52,199,123,.35)}
+.chip.live i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:.35rem;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.apilink{font-size:.8rem;color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--faint)}
+.apilink:hover{color:var(--accent)}
+
+/* ---------- layout ---------- */
+main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:1.1rem;max-width:1280px;margin:0 auto;padding:1.3rem 1.4rem 3rem;align-items:start}
+@media(max-width:920px){main{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:640px){header{padding:.7rem .9rem}header h1{font-size:.8rem}header h1 span{display:none}.chip:not(.live),.apilink{display:none}.chip{font-size:.65rem;padding:.15rem .55rem}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);padding:1.1rem 1.2rem}
+.panel h2{font-family:var(--font-display);font-size:.82rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:.8rem}
+.panel h2 b{color:var(--accent);font-weight:800}
+
+/* ---------- samples ---------- */
+.samples{display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;margin-bottom:1rem}
+@media(max-width:640px){.samples{grid-template-columns:repeat(2,1fr)}}
+.sample{text-align:left;background:var(--raised);border:1px solid var(--line);border-radius:var(--r-card);padding:.6rem .7rem;cursor:pointer;color:var(--text);transition:border-color .18s,transform .18s}
+.sample:hover{border-color:rgba(229,161,61,.55);transform:translateY(-1px)}
+.sample:disabled{opacity:.5;cursor:wait;transform:none}
+.sample strong{display:block;font-size:.85rem;font-weight:600}
+.sample span{display:block;font-family:var(--font-mono);font-size:.7rem;color:var(--muted);margin-top:.15rem}
+.sample.danger strong{color:var(--abstain)}
+
+/* ---------- conversation ---------- */
+#thread{display:flex;flex-direction:column;gap:.9rem;min-height:180px}
+.empty{border:1px dashed var(--line-strong);border-radius:var(--r-card);padding:2rem 1rem;text-align:center;color:var(--faint);font-size:.92rem}
+.msg{animation:rise .28s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.msg.user{align-self:flex-end;max-width:88%;background:rgba(229,161,61,.14);border:1px solid rgba(229,161,61,.35);border-radius:14px 14px 4px 14px;padding:.6rem .95rem;font-size:.93rem}
+.msg.assistant{align-self:stretch;background:var(--raised);border:1px solid var(--line);border-radius:var(--r-card);padding:.85rem 1rem}
+.verdict{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.55rem}
+.badge{font-family:var(--font-mono);font-size:.7rem;font-weight:600;letter-spacing:.06em;border-radius:5px;padding:.18rem .5rem}
+.badge.ok{background:var(--ok-dim);color:var(--ok);border:1px solid rgba(52,199,123,.4)}
+.badge.abs{background:var(--abstain-dim);color:var(--abstain);border:1px solid rgba(155,126,222,.45)}
+.verdict .meta{font-family:var(--font-mono);font-size:.72rem;color:var(--faint)}
+.answer{font-size:.94rem;max-width:70ch}
+.answer strong{font-weight:600}
+.cite{display:inline-grid;place-items:center;min-width:1.45em;height:1.45em;padding:0 .3em;border-radius:6px;background:var(--accent-dim);border:1px solid rgba(229,161,61,.5);color:var(--accent);font-family:var(--font-mono);font-size:.75rem;font-weight:600;cursor:pointer;vertical-align:2px;margin:0 .1em}
+.cite:hover{background:rgba(229,161,61,.3)}
+.dots{display:inline-flex;gap:5px;padding:.4rem 0}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:blink 1.1s infinite}
+.dots i:nth-child(2){animation-delay:.18s}.dots i:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.err{background:rgba(229,72,77,.08);border:1px solid rgba(229,72,77,.4);border-radius:var(--r-card);padding:.7rem .9rem;font-size:.88rem}
+.err button{margin-left:.6rem;background:none;border:1px solid var(--line-strong);color:var(--text);border-radius:6px;padding:.25rem .7rem;cursor:pointer}
+.err button:hover{border-color:var(--accent)}
+
+/* ---------- input ---------- */
+.askrow{display:flex;gap:.55rem;margin-top:1rem}
+.askrow input{flex:1;background:var(--raised);border:1px solid var(--line-strong);border-radius:var(--r-input);color:var(--text);font-family:inherit;font-size:.95rem;padding:.7rem .9rem}
+.askrow input::placeholder{color:var(--faint)}
+.askrow input:focus{border-color:var(--accent);outline:none}
+.btn{background:var(--accent);border:1px solid var(--accent);color:#14100a;font-weight:700;font-size:.92rem;border-radius:var(--r-input);padding:.7rem 1.4rem;cursor:pointer;transition:filter .18s}
+.btn:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.55;cursor:wait;filter:none}
+
+/* ---------- evidence rail ---------- */
+#rail{position:sticky;top:76px;max-height:calc(100vh - 100px);overflow:auto}
+@media(max-width:920px){#rail{position:static;max-height:none}}
+.passage{background:var(--raised);border:1px solid var(--line);border-radius:var(--r-card);padding:.7rem .85rem;margin-bottom:.6rem;transition:border-color .2s,box-shadow .2s;scroll-margin:90px}
+.passage.lit{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 4px 22px rgba(229,161,61,.18)}
+.passage.dim{opacity:.45}
+.passage .ph{display:flex;align-items:baseline;gap:.5rem;margin-bottom:.3rem}
+.pnum{font-family:var(--font-mono);font-size:.72rem;font-weight:600;color:var(--bg);background:var(--accent);border-radius:5px;padding:.1rem .42rem;flex:none}
+.passage .sec{font-weight:600;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scorebar{height:5px;background:rgba(232,237,242,.1);border-radius:3px;margin:.35rem 0 .45rem;overflow:hidden}
+.scorebar i{display:block;height:100%;background:var(--accent);border-radius:3px;width:0;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+.passage p{font-size:.82rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.passage.open p{-webkit-line-clamp:unset}
+.passage .src{font-family:var(--font-mono);font-size:.68rem;color:var(--faint);margin-top:.4rem;display:block}
+.more{background:none;border:none;color:var(--accent);font-size:.76rem;cursor:pointer;padding:.2rem 0 0}
+.railstats{font-family:var(--font-mono);font-size:.72rem;color:var(--faint);border-top:1px solid var(--line);padding-top:.7rem;margin-top:.4rem;line-height:1.9}
+.skel{border-radius:var(--r-card);height:86px;margin-bottom:.6rem;background:linear-gradient(100deg,var(--raised) 40%,#1b2532 50%,var(--raised) 60%);background-size:200% 100%;animation:shimmer 1.2s infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+footer{max-width:1280px;margin:0 auto;padding:0 1.4rem 2rem;color:var(--faint);font-family:var(--font-mono);font-size:.72rem}
+
+/* entrance */
+header,.panel,.samples{animation:rise .35s ease-out backwards}
+.panel:nth-child(2){animation-delay:.08s}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="mark">◈</div>
+  <h1>RAG Docs Assistant <span>live demo</span></h1>
+  <div class="chips">
+    <span class="chip live"><i></i>mock LLM</span>
+    <span class="chip" id="chunkChip">… chunks</span>
+    <a class="apilink" href="/docs">API docs</a>
+  </div>
+</header>
+<main>
+  <section class="panel" aria-label="Conversation">
+    <h2>Ask the docs</h2>
+    <div class="samples" id="samples">
+      <button class="sample" data-q="How much does the Team plan cost per user?"><strong>Pricing</strong><span>Team plan cost per user</span></button>
+      <button class="sample" data-q="What is the hotel cap per night?"><strong>Travel policy</strong><span>Hotel cap per night</span></button>
+      <button class="sample" data-q="Who is on-call and how do swaps work?"><strong>On-call</strong><span>Pager duty and swaps</span></button>
+      <button class="sample danger" data-q="Zqxw kvetch blorpt flarnib?"><strong>Unanswerable</strong><span>Ask the impossible</span></button>
+    </div>
+    <div id="thread"><div class="empty">Ask anything about the company docs — answers cite their sources, or the system abstains instead of guessing.</div></div>
+    <div class="askrow">
+      <input id="q" type="text" placeholder="What are the core collaboration hours?" autocomplete="off" maxlength="500">
+      <button class="btn" id="askBtn">Ask</button>
+    </div>
+  </section>
+  <aside class="panel" id="rail" aria-label="Evidence">
+    <h2>Evidence <b id="evCount"></b></h2>
+    <div id="passages"><div class="empty">Retrieved passages land here with relevance scores.</div></div>
+    <div class="railstats" id="railstats"></div>
+  </aside>
+</main>
+<footer>POST /query · GET /stats · single static file, no build step, runs offline</footer>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let busy=false;
+
+fetch('/stats').then(r=>r.json()).then(s=>{$('chunkChip').textContent=(s.chunks??'?')+' chunks';}).catch(()=>{$('chunkChip').textContent='offline KB';});
+
+document.querySelectorAll('.sample').forEach(b=>b.onclick=()=>ask(b.dataset.q));
+$('askBtn').onclick=()=>ask($('q').value);
+$('q').addEventListener('keydown',e=>{if(e.key==='Enter')ask($('q').value);});
+
+function setBusy(b){busy=b;$('askBtn').disabled=b;document.querySelectorAll('.sample').forEach(x=>x.disabled=b);}
+
+function bubbleUser(text){
+  document.querySelector('#thread .empty')?.remove();
+  const d=document.createElement('div');d.className='msg user';d.textContent=text;
+  $('thread').appendChild(d);d.scrollIntoView({block:'nearest'});
+}
+function bubbleAssistant(){
+  document.querySelector('#thread .empty')?.remove();
+  const d=document.createElement('div');d.className='msg assistant';
+  d.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';
+  $('thread').appendChild(d);d.scrollIntoView({block:'nearest'});
+  return d;
+}
+function renderAnswer(el,answer,citations){
+  const html=esc(answer)
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\[(\d+)\]/g,'<button class="cite" data-n="$1">$1</button>');
+  el.querySelector('.answer').innerHTML=html;
+  el.querySelectorAll('.cite').forEach(c=>{
+    const go=()=>spot(+c.dataset.n);
+    c.onclick=go;c.onmouseenter=go;
+  });
+}
+function reveal(el,answer,citations,done){
+  const box=el.querySelector('.answer');
+  if(reduceMotion){renderAnswer(el,answer,citations);done&&done();return;}
+  const words=answer.split(/(\s+)/);let i=0;
+  box.textContent='';
+  const t=setInterval(()=>{
+    i+=3;box.textContent=words.slice(0,i).join('');
+    if(i>=words.length){clearInterval(t);renderAnswer(el,answer,citations);done&&done();}
+  },18);
+}
+function spot(n){
+  document.querySelectorAll('.passage').forEach(p=>p.classList.remove('lit'));
+  const p=document.querySelector('.passage[data-n="'+n+'"]');
+  if(p){p.classList.add('lit');p.scrollIntoView({block:'nearest',behavior:reduceMotion?'auto':'smooth'});}
+}
+function renderRail(passages,abstained){
+  $('evCount').textContent='· '+passages.length+' passages';
+  $('passages').innerHTML=passages.map((p,i)=>{
+    const n=i+1;
+    return '<div class="passage'+(abstained?' dim':'')+'" data-n="'+n+'">'+
+      '<div class="ph"><span class="pnum">'+n+'</span><span class="sec">'+esc(p.section||'untitled')+'</span></div>'+
+      '<div class="scorebar"><i data-w="'+Math.round(p.score*100)+'"></i></div>'+
+      '<p>'+esc(p.text)+'</p>'+
+      '<span class="src">'+esc((p.source||'').split('/').pop())+' · score '+p.score.toFixed(3)+'</span>'+
+      (p.text.length>220?'<button class="more">expand</button>':'')+'</div>';
+  }).join('')||'<div class="empty">No passages retrieved.</div>';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('.scorebar i').forEach(b=>b.style.width=b.dataset.w+'%');
+  }));
+  document.querySelectorAll('.passage .more').forEach(b=>b.onclick=()=>{
+    const card=b.closest('.passage');card.classList.toggle('open');
+    b.textContent=card.classList.contains('open')?'collapse':'expand';
+  });
+}
+
+async function ask(question){
+  question=(question||'').trim();
+  if(!question||busy)return;
+  setBusy(true);$('q').value=question;
+  bubbleUser(question);
+  const el=bubbleAssistant();
+  $('passages').innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+  $('railstats').textContent='';
+  const t0=performance.now();
+  try{
+    const r=await fetch('/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question})});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    const ms=Math.round(performance.now()-t0);
+    el.innerHTML=(j.abstained
+      ?'<div class="verdict"><span class="badge abs">ABSTAINED</span><span class="meta">no reliable context — refused to guess</span></div>'
+      :'<div class="verdict"><span class="badge ok">ANSWERED</span><span class="meta">model '+esc(j.model)+' · '+ms+'ms</span></div>')+
+      '<div class="answer"></div>';
+    renderRail(j.passages||[],j.abstained);
+    $('railstats').innerHTML='model '+esc(j.model)+'<br>'+(j.passages||[]).length+' passages · '+ms+'ms round-trip'+(j.abstained?'<br>retrieved but insufficient → abstained':'');
+    reveal(el,j.answer,j.citations,()=>{setBusy(false);el.scrollIntoView({block:'nearest'});});
+  }catch(e){
+    el.innerHTML='<div class="err">Request failed ('+esc(e.message)+'). Is the API running?<button onclick="ask(document.getElementById(\'q\').value)">retry</button></div>';
+    $('passages').innerHTML='<div class="empty">Nothing retrieved.</div>';
+    setBusy(false);
+  }
+}
+</script>
+</body>
+</html>
