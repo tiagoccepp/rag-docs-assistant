@@ -82,6 +82,26 @@ def test_question_max_length(client):
     assert resp.status_code == 422
 
 
+def test_answer_mock_extracts_cited(client):
+    passages = [{"text": "# Travel\n\nHotel cap is USD 180 per night for all employees.", "source": "mine.md", "section": "Travel", "score": 1.0}]
+    resp = client.post("/answer", json={"question": "What is the hotel cap?", "passages": passages})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "180" in body["answer"]
+    assert body["abstained"] is False
+    assert body["citations"] == [1]
+    assert body["model"] == "mock"
+
+
+def test_answer_validates_caps(client):
+    p = {"text": "Some policy text here.", "source": "s.md", "section": "S", "score": 0.9}
+    assert client.post("/answer", json={"question": "Q?", "passages": []}).status_code == 422
+    assert client.post("/answer", json={"question": "Q?", "passages": [p] * 9}).status_code == 422
+    assert client.post("/answer", json={"question": "x" * 2001, "passages": [p]}).status_code == 422
+    big = dict(p, text="y" * 4001)
+    assert client.post("/answer", json={"question": "Q?", "passages": [big]}).status_code == 422
+
+
 def test_query_stream_emits_events(client):
     resp = client.post("/query/stream", json={"question": "Team plan cost?", "top_k": 2})
     assert resp.status_code == 200

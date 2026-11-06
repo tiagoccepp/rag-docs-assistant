@@ -142,6 +142,8 @@ header,.panel,.samples{animation:rise .35s ease-out backwards}
       <button class="sample" data-q="Who is on-call and how do swaps work?"><strong>On-call</strong><span>Pager duty and swaps</span></button>
       <button class="sample danger" data-q="Zqxw kvetch blorpt flarnib?"><strong>Unanswerable</strong><span>Ask the impossible</span></button>
     </div>
+    <div class="drop" id="drop" title="Your files never leave this browser except as top matching passages sent for answers." style="border:1px dashed var(--line-strong);border-radius:9px;padding:.55rem .8rem;font-size:.8rem;color:var(--muted);margin-bottom:.7rem;cursor:pointer">Seed knowledge: Northwind Labs docs (26 chunks). <b style="color:var(--text)">Drop .md/.txt here to add your own</b> (max 5 files × 200KB)<input type="file" id="filePick" accept=".md,.txt,.markdown" multiple hidden></div>
+    <div id="docs"></div>
     <div id="thread"><div class="empty">Ask anything about the company docs — answers cite their sources, or the system abstains instead of guessing.</div></div>
     <div class="askrow">
       <input id="q" type="text" placeholder="What are the core collaboration hours?" autocomplete="off" maxlength="500">
@@ -154,20 +156,40 @@ header,.panel,.samples{animation:rise .35s ease-out backwards}
     <div class="railstats" id="railstats"></div>
   </aside>
 </main>
-<footer>POST /query · GET /stats · single static file, no build step, runs offline</footer>
+<footer>POST /query · POST /answer · GET /stats · drop .md/.txt to extend the KB in your browser</footer>
 <script>
 /*__FIXTURES__*/
 const $=id=>document.getElementById(id);
-const DEMO=/[?&]demo=1(&|$)/.test(location.search);
+let API='',LIVE=false,DEMO=/[?&]demo=1(&|$)/.test(location.search);
+const FORCE_DEMO=DEMO,FORCE_LIVE=/[?&]live=1(&|$)/.test(location.search);
+const ep=p=>API+p;
+let busy=false;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const FIXMAP={"How much does the Team plan cost per user?":"q_pricing","What is the hotel cap per night?":"q_hotel","Who is on-call and how do swaps work?":"q_oncall","Zqxw kvetch blorpt flarnib?":"q_absurd"};
-if(DEMO){const c=document.querySelector('.chip.live');if(c)c.innerHTML='◉ sample responses';
-const b=document.createElement('div');b.style.cssText='background:rgba(229,161,61,.1);border-bottom:1px solid rgba(229,161,61,.4);color:#E5A13D;font-family:var(--font-mono);font-size:.75rem;text-align:center;padding:.4rem .8rem';b.textContent='Sample mode — pre-recorded real responses (beam-free). Open without ?demo=1 against a live backend.';document.body.prepend(b);}
+function showBanner(text){const b=document.createElement('div');b.style.cssText='background:rgba(229,161,61,.1);border-bottom:1px solid rgba(229,161,61,.4);color:#E5A13D;font-family:var(--font-mono);font-size:.75rem;text-align:center;padding:.4rem .8rem';b.textContent=text;document.body.prepend(b);}
+async function apiOk(base){try{const r=await fetch(base+'/health',{cache:'no-store'});const j=await r.json().catch(()=>null);return r.ok&&!!j&&j.status==='ok';}catch{return false;}}
+async function boot(){
+  if(!FORCE_DEMO){
+    if(await apiOk('')){API='';LIVE=true;}
+    else{let cfg={};try{cfg=await(await fetch('demo-config.json',{cache:'no-store'})).json();}catch{}
+      if(cfg.api_base){try{if(await apiOk(cfg.api_base)){API=cfg.api_base;LIVE=true;}}catch{}}}
+    if(!LIVE&&!FORCE_LIVE)DEMO=true;
+  }else{LIVE=false;}
+  const c=document.querySelector('.chip.live');
+  if(DEMO){
+    if(c)c.innerHTML='◉ sample responses';
+    showBanner(FORCE_DEMO?'Sample mode — pre-recorded real responses (beam-free). Drop files above to preview retrieval over your own docs; full answers need the live backend.':'Live backend unreachable — sample mode with pre-recorded responses and in-browser retrieval preview.');
+    if(typeof FIXTURES!=='undefined'&&FIXTURES.stats)$('chunkChip').textContent=(FIXTURES.stats.chunks??'?')+' chunks';
+  }else{
+    if(c)c.innerHTML='◉ live backend';
+    try{const s=await(await fetch(ep('/stats'))).json();$('chunkChip').textContent=(s.chunks??'?')+' chunks';}catch{$('chunkChip').textContent='offline KB';}
+  }
+}
+setBusy(true);boot().then(()=>setBusy(false)).catch(()=>setBusy(false));
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let busy=false;
 
-if(DEMO&&typeof FIXTURES!=='undefined'&&FIXTURES.stats){$('chunkChip').textContent=(FIXTURES.stats.chunks??'?')+' chunks';}else{fetch('/stats').then(r=>r.json()).then(s=>{$('chunkChip').textContent=(s.chunks??'?')+' chunks';}).catch(()=>{$('chunkChip').textContent='offline KB';});}
+/* chunkChip + banner set by boot() after API resolution */
 
 document.querySelectorAll('.sample').forEach(b=>b.onclick=()=>ask(b.dataset.q));
 $('askBtn').onclick=()=>ask($('q').value);
@@ -233,8 +255,11 @@ function renderRail(passages,abstained){
 }
 
 const STOPW=new Set('a,an,the,and,or,but,is,are,was,were,be,been,of,to,in,on,for,with,what,when,where,who,how,do,does,did,can,could,should,would,me,my,you,your,it,its,this,that,there,their,they,at,by,from,as,about,into,have,has,had,not,no,so,if,than,too,very,just,me'.split(','));
-function previewRetrieve(question){
-  const chunks=(typeof FIXTURES!=='undefined'&&FIXTURES.chunks)||[];
+const UPLOADS=[];
+function seedChunks(){return (typeof FIXTURES!=='undefined'&&FIXTURES.chunks)||[];}
+function mergedCorpus(){return seedChunks().concat(UPLOADS);}
+function previewRetrieve(question,corpus){
+  const chunks=corpus||mergedCorpus();
   if(!chunks.length)return [];
   const qt=question.toLowerCase().split(/[^a-z0-9]+/).filter(t=>t.length>2&&!STOPW.has(t));
   if(!qt.length)return [];
@@ -245,6 +270,39 @@ function previewRetrieve(question){
   const mx=(scored[0]&&scored[0]._s)||1;
   return scored.map(o=>({text:o.text,source:o.source,section:o.section,score:o._s/mx}));
 }
+function chunkUpload(name,text){
+  const hm=text.match(/^#{1,3}\s+.+/m);
+  const section=hm?hm[0].replace(/^#+\s*/,'').slice(0,80):name;
+  const paras=text.split(/\n\s*\n/).map(s=>s.trim()).filter(s=>s.length>20);
+  const out=[];let buf='';
+  for(const p of paras){if((buf+'\n\n'+p).length>1400&&buf){out.push(buf);buf=p;}else{buf=buf?buf+'\n\n'+p:p;}}
+  if(buf)out.push(buf);
+  return out.map(t=>({text:(section?('# '+section+'\n\n'):'')+t.slice(0,4000),source:name,section}));
+}
+function renderDocs(){
+  const names=[...new Set(UPLOADS.map(c=>c.source))];
+  $('docs').innerHTML=UPLOADS.length?'<div style="font-family:var(--font-mono);font-size:.7rem;color:var(--muted);margin:0 0 .6rem">yours: '+UPLOADS.length+' chunks from '+names.map(esc).join(', ')+' <button id="clearDocs">clear</button></div>':'';
+  const cl=$('clearDocs');if(cl)cl.onclick=()=>{UPLOADS.length=0;renderDocs();};
+}
+function addFiles(files){
+  const list=[...files].filter(f=>/\.(md|txt|markdown)$/i.test(f.name)).slice(0,5);
+  if(!list.length)return;
+  let pending=list.length;
+  const done=()=>{if(--pending<=0)renderDocs();};
+  list.forEach(f=>{
+    if(f.size>200000){done();return;}
+    const r=new FileReader();
+    r.onload=()=>{try{UPLOADS.push(...chunkUpload(f.name,String(r.result||'').slice(0,200000)));}catch{}done();};
+    r.onerror=done;
+    r.readAsText(f);
+  });
+}
+(function(){const drop=$('drop');if(!drop)return;
+  drop.onclick=()=>$('filePick').click();
+  $('filePick').onchange=e=>{addFiles(e.target.files);e.target.value='';};
+  ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.style.borderColor='#4CC3FF';}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.style.borderColor='';}));
+  drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));})();
 async function ask(question){
   question=(question||'').trim();
   if(!question||busy)return;
@@ -270,8 +328,14 @@ async function ask(question){
       }
       await sleep(650);
       j=FIXTURES[key];
+    }else if(UPLOADS.length){
+      const top=previewRetrieve(question).slice(0,4);
+      if(!top.length){el.innerHTML='<div class="err">Your words match nothing in the seed docs or your uploads — try different terms.</div>';$('passages').innerHTML='<div class="empty">Nothing retrieved.</div>';setBusy(false);return;}
+      const r=await fetch(ep('/answer'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,passages:top.map(p=>({text:p.text.slice(0,4000),source:p.source,section:p.section,score:p.score}))})});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      j=await r.json();j.passages=top;
     }else{
-      const r=await fetch('/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question})});
+      const r=await fetch(ep('/query'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question})});
       if(!r.ok)throw new Error('HTTP '+r.status);
       j=await r.json();
     }

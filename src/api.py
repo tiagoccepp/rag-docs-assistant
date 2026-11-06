@@ -42,7 +42,7 @@ app = FastAPI(
     description="Hybrid-search RAG over company docs: pgvector + FTS + RRF, rerank, cited answers.",
     version="0.1.0",
 )
-app.add_middleware(RateLimitMiddleware, prefixes=("/query", "/ingest"))
+app.add_middleware(RateLimitMiddleware, prefixes=("/query", "/answer", "/ingest"))
 
 _settings = get_settings()
 _retriever: InMemoryRetriever | PostgresRetriever | None = None
@@ -209,6 +209,47 @@ def query(req: QueryRequest) -> QueryResponse:
     return QueryResponse(
         answer=answer, citations=citations, abstained=abstained,
         model=model, passages=_to_passages(passages),
+    )
+
+
+class PassageIn(BaseModel):
+    text: str = Field(max_length=4000)
+    source: str = Field(default="upload", max_length=200)
+    section: str = Field(default="", max_length=200)
+    score: float = Field(default=1.0, ge=0.0, le=1.0)
+
+
+class AnswerRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=2000)
+    passages: list[PassageIn] = Field(min_length=1, max_length=8)
+
+
+class AnswerResponse(BaseModel):
+    answer: str
+    citations: list[int]
+    abstained: bool
+    model: str
+
+
+@app.post("/answer", response_model=AnswerResponse)
+def answer(req: AnswerRequest) -> AnswerResponse:
+    """Stateless generation over caller-provided passages.
+
+    Retrieval happens wherever the caller wants (e.g. in-browser over
+    user-dropped docs). Caller passages are never stored server-side.
+    Same prompt, citations and abstention policy as /query.
+    """
+    contexts = [
+        RetrievalResult(
+            chunk_id=f"client-{i}", text=p.text, source=p.source,
+            section=p.section, score=p.score,
+        )
+        for i, p in enumerate(req.passages)
+    ]
+    g = generate_answer(req.question, contexts)
+    return AnswerResponse(
+        answer=g.answer, citations=g.citations,
+        abstained=g.abstained, model=g.model,
     )
 
 
